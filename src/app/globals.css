@@ -1,26 +1,287 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   INVESTORIQ — Premium Design System
+   ============================================ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Brand Colors */
+  --color-brand-50: oklch(0.97 0.02 250);
+  --color-brand-100: oklch(0.93 0.04 250);
+  --color-brand-200: oklch(0.87 0.07 250);
+  --color-brand-300: oklch(0.78 0.11 250);
+  --color-brand-400: oklch(0.68 0.15 250);
+  --color-brand-500: oklch(0.58 0.19 250);
+  --color-brand-600: oklch(0.50 0.19 250);
+  --color-brand-700: oklch(0.42 0.16 250);
+
+  /* Accent */
+  --color-accent-cyan: oklch(0.75 0.15 195);
+  --color-accent-emerald: oklch(0.72 0.17 155);
+  --color-accent-amber: oklch(0.80 0.16 80);
+  --color-accent-rose: oklch(0.65 0.20 15);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #0c0c10;
+  --card-foreground: #fafafa;
+  --muted: #1a1a24;
+  --muted-foreground: #71717a;
+  --border: rgba(255, 255, 255, 0.06);
+  --ring: oklch(0.58 0.19 250);
+  --radius: 0.75rem;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(12, 12, 18, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Glow */
+  --glow-brand: 0 0 60px rgba(99, 102, 241, 0.15);
+  --glow-emerald: 0 0 40px rgba(52, 211, 153, 0.12);
+  --glow-rose: 0 0 40px rgba(244, 63, 94, 0.12);
+  --glow-amber: 0 0 40px rgba(251, 191, 36, 0.12);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   GLASS CARD
+   ============================================ */
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: var(--glass-shadow), var(--glow-brand);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   GRADIENT TEXT
+   ============================================ */
+
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8, #06b6d4, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-brand {
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   ANIMATED GRADIENT BORDER
+   ============================================ */
+
+.gradient-border {
+  position: relative;
+  border: none;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.5), rgba(6, 182, 212, 0.5), rgba(52, 211, 153, 0.5));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+/* ============================================
+   RECOMMENDATION BADGES
+   ============================================ */
+
+.badge-invest {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #34d399;
+  box-shadow: var(--glow-emerald);
+}
+
+.badge-hold {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  box-shadow: var(--glow-amber);
+}
+
+.badge-pass {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: #f43f5e;
+  box-shadow: var(--glow-rose);
+}
+
+/* ============================================
+   SCORE GAUGE
+   ============================================ */
+
+.score-gauge-ring {
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   GRID BACKGROUND
+   ============================================ */
+
+.grid-background {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   PULSE ANIMATION
+   ============================================ */
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ============================================
+   STEP CONNECTOR
+   ============================================ */
+
+.step-line {
+  position: relative;
+}
+
+.step-line::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  bottom: -8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--glass-border), transparent);
+}
+
+.step-line:last-child::after {
+  display: none;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
 }
