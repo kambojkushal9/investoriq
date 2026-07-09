@@ -7,11 +7,14 @@ import { createResearchGraph } from '@/lib/agents/graph';
 import { searchTicker } from '@/lib/data/yahoo-finance';
 import { saveReport } from '@/lib/db';
 import type { ResearchState } from '@/lib/types';
+import { auth } from '@/auth';
 
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id || 'guest';
     const body = await req.json();
     const { company } = body;
 
@@ -130,7 +133,8 @@ export async function POST(req: NextRequest) {
           // Save to database
           let reportId: string | undefined;
           if (completeState.recommendation) {
-            const report = saveReport(
+            const report = await saveReport(
+              userId,
               completeState.companyResearch?.name || company,
               completeState.ticker || ticker,
               completeState.recommendation.recommendation,

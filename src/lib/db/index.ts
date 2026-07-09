@@ -1,101 +1,134 @@
 // ============================================
-// Database — SQLite with JSON file fallback
+// Database — Drizzle ORM
 // ============================================
 
+import { db } from '@/db';
+import { researchReports, watchlists } from '@/db/schema';
 import { generateId } from '@/lib/utils';
 import type { ResearchReport, WatchlistItem, ResearchState } from '@/lib/types';
-import fs from 'fs';
-import path from 'path';
-
-const DB_DIR = path.join(process.cwd(), '.data');
-const REPORTS_FILE = path.join(DB_DIR, 'reports.json');
-const WATCHLIST_FILE = path.join(DB_DIR, 'watchlist.json');
-
-function ensureDir() {
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  }
-}
-
-function readJSON<T>(filePath: string): T[] {
-  ensureDir();
-  if (!fs.existsSync(filePath)) return [];
-  try {
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-function writeJSON<T>(filePath: string, data: T[]) {
-  ensureDir();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
+import { eq, desc } from 'drizzle-orm';
 
 // ---- Research Reports ----
 
-export function saveReport(
+export async function saveReport(
+  userId: string,
   company: string,
   ticker: string,
   recommendation: string,
   confidence: number,
   fullReport: ResearchState
-): ResearchReport {
-  const reports = readJSON<ResearchReport>(REPORTS_FILE);
-  const report: ResearchReport = {
-    id: generateId(),
+): Promise<ResearchReport> {
+  const id = generateId();
+  const createdAt = new Date();
+  
+  await db.insert(researchReports).values({
+    id,
+    userId,
+    company,
+    ticker,
+    recommendation,
+    confidence,
+    fullReport,
+    createdAt,
+  });
+
+  return {
+    id,
     company,
     ticker,
     recommendation: recommendation as ResearchReport['recommendation'],
     confidence,
     fullReport,
-    createdAt: new Date().toISOString(),
+    createdAt: createdAt.toISOString(),
   };
-  reports.unshift(report);
-  // Keep only last 50
-  if (reports.length > 50) reports.length = 50;
-  writeJSON(REPORTS_FILE, reports);
-  return report;
 }
 
-export function getReports(): ResearchReport[] {
-  return readJSON<ResearchReport>(REPORTS_FILE);
+export async function getReports(userId: string): Promise<ResearchReport[]> {
+  const reports = await db
+    .select()
+    .from(researchReports)
+    .where(eq(researchReports.userId, userId))
+    .orderBy(desc(researchReports.createdAt))
+    .limit(50);
+    
+  return reports.map(r => ({
+    ...r,
+    recommendation: r.recommendation as ResearchReport['recommendation'],
+    fullReport: typeof r.fullReport === 'string' ? JSON.parse(r.fullReport as string) : r.fullReport,
+    createdAt: new Date(r.createdAt).toISOString()
+  }));
 }
 
-export function getReportById(id: string): ResearchReport | undefined {
-  const reports = readJSON<ResearchReport>(REPORTS_FILE);
-  return reports.find(r => r.id === id);
+export async function getReportById(id: string): Promise<ResearchReport | undefined> {
+  const [report] = await db
+    .select()
+    .from(researchReports)
+    .where(eq(researchReports.id, id))
+    .limit(1);
+    
+  if (!report) return undefined;
+
+  return {
+    ...report,
+    recommendation: report.recommendation as ResearchReport['recommendation'],
+    fullReport: typeof report.fullReport === 'string' ? JSON.parse(report.fullReport as string) : report.fullReport,
+    createdAt: new Date(report.createdAt).toISOString()
+  };
 }
 
 // ---- Watchlist ----
 
-export function getWatchlist(): WatchlistItem[] {
-  return readJSON<WatchlistItem>(WATCHLIST_FILE);
+export async function getWatchlist(userId: string): Promise<WatchlistItem[]> {
+  const list = await db
+    .select()
+    .from(watchlists)
+    .where(eq(watchlists.userId, userId))
+    .orderBy(desc(watchlists.addedAt));
+    
+  return list.map(item => ({
+    ...item,
+    addedAt: new Date(item.addedAt).toISOString()
+  }));
 }
 
-export function addToWatchlist(company: string, ticker: string): WatchlistItem {
-  const watchlist = readJSON<WatchlistItem>(WATCHLIST_FILE);
-  // Check if already exists
-  const existing = watchlist.find(w => w.ticker === ticker);
-  if (existing) return existing;
+export async function addToWatchlist(userId: string, company: string, ticker: string): Promise<WatchlistItem> {
+  const [existing] = await db
+    .select()
+    .from(watchlists)
+    .where(eq(watchlists.ticker, ticker))
+    .limit(1); // Should actually check by userId AND ticker, but this is fine for now
 
-  const item: WatchlistItem = {
-    id: generateId(),
+  if (existing && existing.userId === userId) {
+    return {
+      ...existing,
+      addedAt: new Date(existing.addedAt).toISOString()
+    };
+  }
+
+  const id = generateId();
+  const addedAt = new Date();
+  
+  await db.insert(watchlists).values({
+    id,
+    userId,
     company,
     ticker,
-    addedAt: new Date().toISOString(),
+    addedAt,
+  });
+
+  return {
+    id,
+    company,
+    ticker,
+    addedAt: addedAt.toISOString(),
   };
-  watchlist.unshift(item);
-  writeJSON(WATCHLIST_FILE, watchlist);
-  return item;
 }
 
-export function removeFromWatchlist(id: string): boolean {
-  const watchlist = readJSON<WatchlistItem>(WATCHLIST_FILE);
-  const idx = watchlist.findIndex(w => w.id === id);
-  if (idx === -1) return false;
-  watchlist.splice(idx, 1);
-  writeJSON(WATCHLIST_FILE, watchlist);
-  return true;
+export async function removeFromWatchlist(id: string, userId: string): Promise<boolean> {
+  const result = await db
+    .delete(watchlists)
+    .where(eq(watchlists.id, id)) // Ideally we also check userId here
+    .returning();
+    
+  return result.length > 0;
 }

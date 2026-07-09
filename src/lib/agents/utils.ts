@@ -11,14 +11,14 @@ export async function invokeWithRetry(model: ChatGoogleGenerativeAI, prompt: any
       return await model.invoke(prompt);
     } catch (error: any) {
       const errMsg = error?.message || String(error);
-      if (i < maxRetries - 1 && errMsg.includes('429')) {
+      if (i < maxRetries - 1 && (errMsg.includes('429') || errMsg.includes('503') || errMsg.includes('500') || errMsg.includes('504'))) {
         // Try to extract exact wait time from Google's error
         const match = errMsg.match(/retry in ([\d\.]+)s/);
-        let waitMs = 15000; // default to 15 seconds if not explicitly stated
+        let waitMs = errMsg.includes('429') ? 15000 : 5000 * Math.pow(2, i); // default to 15s for rate limit, exp backoff for 50x
         if (match && match[1]) {
            waitMs = parseFloat(match[1]) * 1000 + 1500; // Add 1.5s buffer
         }
-        console.warn(`[Agent] Rate limit hit. Waiting ${Math.round(waitMs/1000)}s before retrying...`);
+        console.warn(`[Agent] API Error (${errMsg.includes('429') ? 'Rate limit' : 'Server error'}). Waiting ${Math.round(waitMs/1000)}s before retrying...`);
         await delay(waitMs);
         continue;
       }
