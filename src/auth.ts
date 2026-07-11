@@ -28,12 +28,30 @@ export const {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const [user] = await db.select().from(schema.users).where(eq(schema.users.email, credentials.email as string)).limit(1);
-        if (!user || !user.password) return null;
-        const isValid = await bcrypt.compare(credentials.password as string, user.password);
-        if (!isValid) return null;
-        return user;
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.log('[Auth] Missing email or password');
+            return null;
+          }
+          const [user] = await db.select().from(schema.users).where(eq(schema.users.email, credentials.email as string)).limit(1);
+          if (!user) {
+            console.log('[Auth] No user found for email:', credentials.email);
+            return null;
+          }
+          if (!user.password) {
+            console.log('[Auth] User has no password (OAuth-only account):', credentials.email);
+            return null;
+          }
+          const isValid = await bcrypt.compare(credentials.password as string, user.password);
+          if (!isValid) {
+            console.log('[Auth] Invalid password for:', credentials.email);
+            return null;
+          }
+          return user;
+        } catch (error) {
+          console.error('[Auth] Error in authorize:', error);
+          return null;
+        }
       }
     })
   ]

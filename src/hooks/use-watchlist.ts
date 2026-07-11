@@ -10,6 +10,7 @@ export function useWatchlist() {
   const fetchWatchlist = useCallback(async () => {
     try {
       const res = await fetch('/api/watchlist');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setItems(data);
     } catch (err) {
@@ -30,6 +31,7 @@ export function useWatchlist() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company, ticker }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const item = await res.json();
       setItems(prev => [item, ...prev.filter(p => p.ticker !== ticker)]);
       return item;

@@ -32,7 +32,10 @@ export function StockTickerBar() {
 
   useEffect(() => {
     fetch('/api/market/ticker')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setTickerData(data);
