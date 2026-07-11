@@ -6,9 +6,10 @@ import { AuthBackground } from '@/components/auth/auth-background';
 import { AICore } from '@/components/auth/ai-core';
 import { LoginForm } from '@/components/auth/login-form';
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
+import { SignupForm } from '@/components/auth/signup-form';
 import { useRouter } from 'next/navigation';
 
-type AuthView = 'login' | 'forgot';
+type AuthView = 'login' | 'signup' | 'forgot';
 
 export default function LoginPage() {
   const [isSuccess, setIsSuccess] = useState(false);
@@ -27,7 +28,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#050508] text-zinc-100">
       <AuthBackground />
       
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-20 w-full max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
         {/* Left Side: AI Core & Welcome Text */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left h-[500px] justify-center">
@@ -48,7 +49,7 @@ export default function LoginPage() {
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold font-[family-name:var(--font-outfit)] mb-4 leading-tight">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
-                    Authenticate to access your
+                    {view === 'signup' ? 'Start building your' : 'Authenticate to access your'}
                   </span>
                   <br />
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
@@ -56,7 +57,9 @@ export default function LoginPage() {
                   </span>
                 </h1>
                 <p className="text-zinc-400 text-lg max-w-md mt-4 leading-relaxed">
-                  Connect to the neural network. Restore your research, watchlists, and portfolio instantly.
+                  {view === 'signup'
+                    ? 'Create your account to unlock AI-powered research, watchlists, and portfolio intelligence.'
+                    : 'Connect to the neural network. Restore your research, watchlists, and portfolio instantly.'}
                 </p>
               </motion.div>
             ) : (
@@ -102,10 +105,10 @@ export default function LoginPage() {
             >
               <div className="bg-[#0c0c12]/60 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-shadow duration-500 relative group overflow-hidden">
                 {/* Subtle border glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-violet-500/0 group-hover:from-indigo-500/10 group-hover:to-violet-500/10 transition-colors duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-violet-500/0 group-hover:from-indigo-500/10 group-hover:to-violet-500/10 transition-colors duration-500 pointer-events-none" />
                 
                 <AnimatePresence mode="wait">
-                  {view === 'login' ? (
+                  {view === 'login' && (
                     <motion.div
                       key="login-view"
                       initial={{ opacity: 0 }}
@@ -116,9 +119,25 @@ export default function LoginPage() {
                       <LoginForm
                         onSuccess={handleSuccess}
                         onForgotPassword={() => setView('forgot')}
+                        onSignup={() => setView('signup')}
                       />
                     </motion.div>
-                  ) : (
+                  )}
+                  {view === 'signup' && (
+                    <motion.div
+                      key="signup-view"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <SignupForm
+                        onSuccess={handleSuccess}
+                        onBackToLogin={() => setView('login')}
+                      />
+                    </motion.div>
+                  )}
+                  {view === 'forgot' && (
                     <motion.div
                       key="forgot-view"
                       initial={{ opacity: 0 }}

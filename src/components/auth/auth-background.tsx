@@ -60,7 +60,7 @@ export function AuthBackground() {
 
       {/* Mouse Spotlight */}
       <div 
-        className="absolute inset-0 z-10 transition-opacity duration-300"
+        className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
         style={{
           background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(99, 102, 241, 0.08), transparent 40%)`
         }}
@@ -91,7 +91,7 @@ export function AuthBackground() {
       ))}
       
       {/* Overlay to ensure readability */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-none" />
     </div>
   );
 }

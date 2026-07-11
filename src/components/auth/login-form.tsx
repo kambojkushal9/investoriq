@@ -8,7 +8,7 @@ import { MagneticButton } from '@/components/shared/magnetic-button';
 
 type LoginStep = 'credentials' | 'otp';
 
-export function LoginForm({ onSuccess, onForgotPassword }: { onSuccess: () => void; onForgotPassword: () => void }) {
+export function LoginForm({ onSuccess, onForgotPassword, onSignup }: { onSuccess: () => void; onForgotPassword: () => void; onSignup?: () => void }) {
   const [step, setStep] = useState<LoginStep>('credentials');
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -286,6 +286,18 @@ export function LoginForm({ onSuccess, onForgotPassword }: { onSuccess: () => vo
             <p className="mt-8 text-center text-xs text-zinc-500">
               By continuing, you agree to our <a href="#" className="text-zinc-400 hover:text-indigo-400 transition-colors">Terms of Service</a> and <a href="#" className="text-zinc-400 hover:text-indigo-400 transition-colors">Privacy Policy</a>.
             </p>
+
+            {onSignup && (
+              <p className="mt-4 text-center text-sm text-zinc-400">
+                Don&apos;t have an account?{' '}
+                <button
+                  onClick={onSignup}
+                  className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                >
+                  Sign up
+                </button>
+              </p>
+            )}
           </motion.div>
         )}
 

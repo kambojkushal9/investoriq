@@ -40,7 +40,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#050508] text-zinc-100">
       <AuthBackground />
       
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-6 flex flex-col items-center justify-center h-screen">
+      <div className="relative z-20 w-full max-w-4xl mx-auto px-6 flex flex-col items-center justify-center h-screen">
         
         <div className="mb-12">
           <AICore expanded={step === 3} />
@@ -165,13 +165,13 @@ export default function OnboardingPage() {
                 </div>
 
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.8 }}>
-                  <MagneticButton
-                    onClick={handleNext}
-                    className="mt-8 px-10 py-4 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold text-lg inline-flex items-center gap-2 transition-all shadow-xl shadow-white/10"
+                  <button
+                    onClick={() => { window.location.href = '/dashboard'; }}
+                    className="mt-8 px-10 py-4 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold text-lg inline-flex items-center gap-2 transition-all shadow-xl shadow-white/10 cursor-pointer"
                   >
                     Enter Dashboard
                     <ArrowRight className="w-5 h-5" />
-                  </MagneticButton>
+                  </button>
                 </motion.div>
               </motion.div>
             )}
