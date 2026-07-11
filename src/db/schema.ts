@@ -95,3 +95,15 @@ export const userPreferences = sqliteTable("userPreference", {
   favoriteSectors: text("favoriteSectors", { mode: "json" }), // JSON string array
   hasCompletedOnboarding: integer("hasCompletedOnboarding", { mode: "boolean" }).default(false),
 });
+
+export const otpCodes = sqliteTable("otpCode", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  email: text("email").notNull(),
+  code: text("code").notNull(),
+  type: text("type").notNull(), // 'login' | 'reset'
+  expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
+  used: integer("used", { mode: "boolean" }).default(false),
+});
+

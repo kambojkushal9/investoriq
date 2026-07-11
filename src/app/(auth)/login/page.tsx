@@ -5,10 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthBackground } from '@/components/auth/auth-background';
 import { AICore } from '@/components/auth/ai-core';
 import { LoginForm } from '@/components/auth/login-form';
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { useRouter } from 'next/navigation';
+
+type AuthView = 'login' | 'forgot';
 
 export default function LoginPage() {
   const [isSuccess, setIsSuccess] = useState(false);
+  const [view, setView] = useState<AuthView>('login');
   const router = useRouter();
 
   const handleSuccess = () => {
@@ -86,7 +90,7 @@ export default function LoginPage() {
           </AnimatePresence>
         </div>
 
-        {/* Right Side: Login Panel */}
+        {/* Right Side: Auth Panel */}
         <AnimatePresence>
           {!isSuccess && (
             <motion.div
@@ -100,7 +104,32 @@ export default function LoginPage() {
                 {/* Subtle border glow on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-violet-500/0 group-hover:from-indigo-500/10 group-hover:to-violet-500/10 transition-colors duration-500" />
                 
-                <LoginForm onSuccess={handleSuccess} />
+                <AnimatePresence mode="wait">
+                  {view === 'login' ? (
+                    <motion.div
+                      key="login-view"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <LoginForm
+                        onSuccess={handleSuccess}
+                        onForgotPassword={() => setView('forgot')}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="forgot-view"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ForgotPasswordForm onBack={() => setView('login')} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
