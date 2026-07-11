@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react';
 
 export function AuthBackground() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
         x: e.clientX,
@@ -65,13 +67,13 @@ export function AuthBackground() {
       />
 
       {/* Floating Particles/Nodes */}
-      {Array.from({ length: 30 }).map((_, i) => (
+      {mounted && Array.from({ length: 30 }).map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-indigo-400/50 rounded-full blur-[1px]"
           initial={{
-            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
             scale: Math.random() * 2,
           }}
           animate={{
