@@ -113,7 +113,7 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   // Market Sentiment
-  if (rs.marketSentiment) {
+  if (rs?.marketSentiment) {
     const ms = rs.marketSentiment;
     parts.push(`\n=== MARKET SENTIMENT ===`);
     parts.push(`Sentiment Score: ${ms.sentimentScore}/100`);
