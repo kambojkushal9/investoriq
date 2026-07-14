@@ -188,3 +188,55 @@ export interface ComparisonResult {
     companyBScore: number;
   }[];
 }
+
+// ---- Market Data (Trading Chart) ----
+
+export type MarketRange = '1D' | '5D' | '1M' | '3M' | '6M' | '1Y' | '5Y' | 'MAX';
+export type ChartMode = 'area' | 'line' | 'candlestick';
+
+export const MARKET_RANGES: MarketRange[] = ['1D', '5D', '1M', '3M', '6M', '1Y', '5Y', 'MAX'];
+
+export interface OHLCVPoint {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface HistoricalMarketData {
+  ticker: string;
+  currency: string;
+  range: MarketRange;
+  interval: string;
+  currentPrice: number;
+  previousClose: number;
+  companyName: string;
+  data: OHLCVPoint[];
+}
+
+export interface ChartSummary {
+  startPrice: number;
+  endPrice: number;
+  percentageReturn: number;
+  highestPrice: number;
+  lowestPrice: number;
+  averageVolume: number;
+  largestUpMove: number;
+  largestDownMove: number;
+  recentTrend: 'bullish' | 'bearish' | 'neutral';
+  volatilityProxy: number; // standard deviation of daily returns
+  totalDataPoints: number;
+}
+
+export type AnomalyType = 'volume_spike' | 'large_move' | 'range_high' | 'range_low' | 'momentum_shift';
+
+export interface ChartAnomalyMarker {
+  index: number;
+  timestamp: number;
+  type: AnomalyType;
+  label: string;
+  description: string;
+  magnitude: number; // how significant (0-1)
+}

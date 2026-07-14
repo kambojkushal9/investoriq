@@ -1,53 +1,75 @@
-import { NextResponse } from 'next/server';
-import YahooFinance from 'yahoo-finance2';
+// ============================================
+// API: /api/market/chart — Historical Market Data
+// ============================================
+// Multi-range OHLCV endpoint with caching.
+// Reuses the shared Yahoo Finance singleton.
 
-const yf = new YahooFinance();
+import { NextResponse } from 'next/server';
+import { getHistoricalData } from '@/lib/data/yahoo-finance';
+import { getCached, setCache } from '@/lib/data/market-cache';
+import { computeChartSummary, detectAnomalies } from '@/lib/chart-analytics';
+import type { MarketRange, HistoricalMarketData, MARKET_RANGES } from '@/lib/types';
+
+const VALID_RANGES: MarketRange[] = ['1D', '5D', '1M', '3M', '6M', '1Y', '5Y', 'MAX'];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const symbol = searchParams.get('symbol');
+  const symbol = searchParams.get('symbol')?.trim().toUpperCase();
+  const rangeParam = (searchParams.get('range') || '1Y').toUpperCase() as MarketRange;
 
   if (!symbol) {
     return NextResponse.json({ error: 'Symbol is required' }, { status: 400 });
   }
 
+  if (!VALID_RANGES.includes(rangeParam)) {
+    return NextResponse.json(
+      { error: `Invalid range. Valid ranges: ${VALID_RANGES.join(', ')}` },
+      { status: 400 }
+    );
+  }
+
   try {
-    // Get historical data for the last 6 months
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 6);
+    // Check cache first
+    const cached = getCached<HistoricalMarketData>(symbol, rangeParam);
+    if (cached) {
+      const summary = computeChartSummary(cached.data);
+      const anomalies = detectAnomalies(cached.data);
+      return NextResponse.json({
+        ...cached,
+        summary,
+        anomalies,
+        cached: true,
+      });
+    }
 
-    const queryOptions = {
-      period1: startDate,
-      period2: endDate,
-      interval: '1d' as const,
-    };
+    // Fetch from Yahoo Finance
+    const marketData = await getHistoricalData(symbol, rangeParam);
 
-    const historical = await yf.historical(symbol, queryOptions);
-    const quote = await yf.quote(symbol);
+    if (!marketData.data || marketData.data.length === 0) {
+      return NextResponse.json(
+        { error: `No historical data available for ${symbol} in range ${rangeParam}` },
+        { status: 404 }
+      );
+    }
 
-    const chartData = historical.map(item => ({
-      date: item.date.toISOString().split('T')[0],
-      price: item.close,
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      volume: item.volume,
-    }));
+    // Cache the result
+    setCache(symbol, rangeParam, marketData);
+
+    // Compute analytics
+    const summary = computeChartSummary(marketData.data);
+    const anomalies = detectAnomalies(marketData.data);
 
     return NextResponse.json({
-      symbol,
-      name: quote?.shortName || quote?.longName || symbol,
-      currentPrice: quote?.regularMarketPrice || 0,
-      change: quote?.regularMarketChange || 0,
-      changePercent: quote?.regularMarketChangePercent || 0,
-      volume: quote?.regularMarketVolume || 0,
-      high52: quote?.fiftyTwoWeekHigh || 0,
-      low52: quote?.fiftyTwoWeekLow || 0,
-      chartData,
+      ...marketData,
+      summary,
+      anomalies,
+      cached: false,
     });
   } catch (error) {
     console.error('Chart API Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch chart data' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch chart data' },
+      { status: 500 }
+    );
   }
 }

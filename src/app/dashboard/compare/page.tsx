@@ -8,6 +8,7 @@ import { useResearch } from '@/hooks/use-research';
 import { ResearchProgress } from '@/components/dashboard/research-progress';
 import { RecommendationBadge } from '@/components/dashboard/recommendation-badge';
 import { ScoreGauge } from '@/components/shared/score-gauge';
+import { useCopilot } from '@/components/copilot/copilot-provider';
 import type { ResearchState } from '@/lib/types';
 
 export default function ComparePage() {
@@ -21,9 +22,11 @@ export default function ComparePage() {
   const researchA = useResearch();
   const researchB = useResearch();
 
+  const { setCompareData } = useCopilot();
+
   const startCompare = () => {
     if (!companyA.trim() || !companyB.trim()) return;
-    setPhase('a'); setResultA(null); setResultB(null);
+    setPhase('a'); setResultA(null); setResultB(null); setCompareData(undefined);
     researchA.startResearch(companyA);
   };
 
@@ -37,8 +40,15 @@ export default function ComparePage() {
   useEffect(() => {
     if (phase === 'b' && researchB.result?.recommendation && !resultB) {
       setResultB(researchB.result); setPhase('done');
+      if (resultA) {
+        setCompareData({ companyA, companyB, resultA, resultB: researchB.result });
+      }
     }
-  }, [phase, researchB.result, resultB]);
+  }, [phase, researchB.result, resultB, resultA, companyA, companyB, setCompareData]);
+
+  useEffect(() => {
+    return () => setCompareData(undefined); // Cleanup on unmount
+  }, [setCompareData]);
 
   const score = (r: ResearchState) => {
     if (!r.recommendation?.scores) return 0;
@@ -146,7 +156,7 @@ export default function ComparePage() {
 
           <div className="flex justify-center">
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => { setPhase('idle'); researchA.reset(); researchB.reset(); setResultA(null); setResultB(null); }}
+              onClick={() => { setPhase('idle'); researchA.reset(); researchB.reset(); setResultA(null); setResultB(null); setCompareData(undefined); }}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-800/50 border border-white/10 text-zinc-300 hover:text-zinc-100 transition-all">
               <ArrowRight className="w-4 h-4" /> Compare Again
             </motion.button>

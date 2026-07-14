@@ -19,6 +19,8 @@ interface CopilotState {
   explainMode: ExplainMode;
   setExplainMode: (mode: ExplainMode) => void;
   setResearchState: (state: ResearchState | null) => void;
+  setCompareData: (data: CopilotContext['compareData']) => void;
+  setChartContext: (data: CopilotContext['chartContext']) => void;
   sendMessage: (text: string) => void;
   explainScreen: () => void;
   clearConversation: () => void;
@@ -40,6 +42,8 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [explainMode, setExplainMode] = useState<ExplainMode>('default');
   const [researchState, setResearchState] = useState<ResearchState | null>(null);
+  const [compareData, setCompareData] = useState<CopilotContext['compareData']>(undefined);
+  const [chartContext, setChartContext] = useState<CopilotContext['chartContext']>(undefined);
   const abortRef = useRef<AbortController | null>(null);
 
   // Derive context
@@ -49,6 +53,8 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
     activeTicker: researchState?.ticker || null,
     researchState,
     explainMode,
+    compareData,
+    chartContext,
   };
 
   const hasInsights = !!researchState?.recommendation;
@@ -271,7 +277,7 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
       isOpen, setIsOpen,
       messages, isStreaming,
       context, explainMode, setExplainMode,
-      setResearchState,
+      setResearchState, setCompareData, setChartContext,
       sendMessage, explainScreen: explainScreenFn,
       clearConversation, hasInsights,
     }}>

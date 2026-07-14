@@ -6,6 +6,7 @@
 
 import type { CopilotContext } from './types';
 import { formatCurrency } from '@/lib/utils';
+import { formatChartContextForAI } from '@/lib/chart-analytics';
 
 export function buildContextPrompt(context: CopilotContext): string {
   const parts: string[] = [];
@@ -21,13 +22,42 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   const rs = context.researchState;
-  if (!rs) {
-    parts.push(`\nNo research report is currently loaded. The user may be on the landing page or hasn't searched yet.`);
+  const cd = context.compareData;
+  if (!rs && !cd && !context.chartContext) {
+    parts.push(`\nNo research report, chart, or comparison is currently loaded. The user may be on the landing page or hasn't searched yet.`);
+    return parts.join('\n');
+  }
+
+  if (cd) {
+    parts.push(`\n=== COMPARE DATA ===`);
+    parts.push(`User is currently comparing two companies: ${cd.companyA} vs ${cd.companyB}`);
+    
+    // Add brief summary of Company A
+    parts.push(`\n--- ${cd.companyA} ---`);
+    if (cd.resultA.recommendation) {
+      parts.push(`Recommendation: ${cd.resultA.recommendation.recommendation}`);
+      if (cd.resultA.recommendation.scores) {
+        parts.push(`Financial Health: ${cd.resultA.recommendation.scores.financialHealth}/100`);
+        parts.push(`Growth Potential: ${cd.resultA.recommendation.scores.growthPotential}/100`);
+      }
+    }
+    
+    // Add brief summary of Company B
+    parts.push(`\n--- ${cd.companyB} ---`);
+    if (cd.resultB.recommendation) {
+      parts.push(`Recommendation: ${cd.resultB.recommendation.recommendation}`);
+      if (cd.resultB.recommendation.scores) {
+        parts.push(`Financial Health: ${cd.resultB.recommendation.scores.financialHealth}/100`);
+        parts.push(`Growth Potential: ${cd.resultB.recommendation.scores.growthPotential}/100`);
+      }
+    }
+    
+    parts.push(`\n(Please focus on providing a comparative analysis of the strengths and weaknesses of both companies based on the above metrics.)`);
     return parts.join('\n');
   }
 
   // Company Research
-  if (rs.companyResearch) {
+  if (rs?.companyResearch) {
     const cr = rs.companyResearch;
     parts.push(`\n=== COMPANY RESEARCH ===`);
     parts.push(`Name: ${cr.name}`);
@@ -42,7 +72,7 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   // Financial Analysis
-  if (rs.financialAnalysis) {
+  if (rs?.financialAnalysis) {
     const fa = rs.financialAnalysis;
     parts.push(`\n=== FINANCIAL ANALYSIS ===`);
     parts.push(`Health Score: ${fa.healthScore}/100`);
@@ -67,7 +97,7 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   // News Intelligence
-  if (rs.newsIntelligence) {
+  if (rs?.newsIntelligence) {
     const ni = rs.newsIntelligence;
     parts.push(`\n=== NEWS INTELLIGENCE ===`);
     parts.push(`Overall Sentiment: ${ni.overallSentiment}`);
@@ -95,7 +125,7 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   // Risk Assessment
-  if (rs.riskAssessment) {
+  if (rs?.riskAssessment) {
     const ra = rs.riskAssessment;
     parts.push(`\n=== RISK ASSESSMENT ===`);
     parts.push(`Overall Risk Score: ${ra.overallRiskScore}/100 (higher = riskier)`);
@@ -110,7 +140,7 @@ export function buildContextPrompt(context: CopilotContext): string {
   }
 
   // Investment Recommendation
-  if (rs.recommendation) {
+  if (rs?.recommendation) {
     const rec = rs.recommendation;
     parts.push(`\n=== INVESTMENT RECOMMENDATION ===`);
     parts.push(`Recommendation: ${rec.recommendation}`);
@@ -144,6 +174,18 @@ export function buildContextPrompt(context: CopilotContext): string {
       parts.push(`  Opportunities: ${rec.swot.opportunities?.join('; ')}`);
       parts.push(`  Threats: ${rec.swot.threats?.join('; ')}`);
     }
+  }
+
+  // Trading Chart Context
+  if (context.chartContext) {
+    parts.push('\n' + formatChartContextForAI(
+      context.chartContext.ticker,
+      context.chartContext.chartRange,
+      context.chartContext.chartMode,
+      context.chartContext.summary,
+      context.chartContext.selectedPoint,
+      context.chartContext.anomalies
+    ));
   }
 
   return parts.join('\n');

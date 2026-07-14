@@ -15,6 +15,7 @@ import { ScoreCard } from '@/components/dashboard/score-card';
 import { SWOTAnalysis } from '@/components/dashboard/swot-analysis';
 import { DebateView } from '@/components/dashboard/debate-view';
 import { RiskMatrix } from '@/components/dashboard/risk-matrix';
+import { TradingChart } from '@/components/dashboard/trading-chart';
 import { formatCurrency } from '@/lib/utils';
 import { useCopilot } from '@/components/copilot/copilot-provider';
 import { useSession } from 'next-auth/react';
@@ -226,6 +227,17 @@ export default function DashboardPage() {
                 </motion.div>
               )}
             </GlassCard>
+
+            {/* Trading Chart — NEW */}
+            {result.ticker && (
+              <TradingChart 
+                ticker={result.ticker}
+                companyName={result.companyResearch?.name || result.company}
+                recommendation={result.recommendation}
+                riskScore={result.riskAssessment?.overallRiskScore}
+                financialAnalysis={result.financialAnalysis}
+              />
+            )}
 
             {/* Scorecard */}
             {result.recommendation?.scores && (
