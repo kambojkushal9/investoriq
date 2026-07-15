@@ -92,33 +92,35 @@ export default function HistoryPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
             >
-              <GlassCard className="p-5 glass-card-hover" hover tilt>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                      <TrendingUp className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-zinc-100">{report.company}</h3>
-                        <span className="text-xs font-mono text-zinc-500">{report.ticker}</span>
+              <Link href={`/dashboard?reportId=${report.id}`} className="block">
+                <GlassCard className="p-5 glass-card-hover" hover tilt>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                        <TrendingUp className="w-5 h-5 text-indigo-400" />
                       </div>
-                      <p className="text-xs text-zinc-500">
-                        {new Date(report.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric', month: 'short', day: 'numeric',
-                          hour: '2-digit', minute: '2-digit',
-                        })}
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-zinc-100">{report.company}</h3>
+                          <span className="text-xs font-mono text-zinc-500">{report.ticker}</span>
+                        </div>
+                        <p className="text-xs text-zinc-500">
+                          {new Date(report.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`${getRecommendationClass(report.recommendation)} px-3.5 py-1 rounded-lg text-xs font-bold`}>
+                        {report.recommendation}
+                      </div>
+                      <span className="text-xs text-zinc-500 font-mono">{report.confidence}%</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className={`${getRecommendationClass(report.recommendation)} px-3.5 py-1 rounded-lg text-xs font-bold`}>
-                      {report.recommendation}
-                    </div>
-                    <span className="text-xs text-zinc-500 font-mono">{report.confidence}%</span>
-                  </div>
-                </div>
-              </GlassCard>
+                </GlassCard>
+              </Link>
             </motion.div>
           ))}
         </div>

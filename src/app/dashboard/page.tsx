@@ -24,8 +24,21 @@ export default function DashboardPage() {
   const [query, setQuery] = useState('');
   const router = useRouter();
   const { data: session } = useSession();
-  const { isLoading, currentStep, completedSteps, result, error, startResearch, reset } = useResearch();
+  const { isLoading, currentStep, completedSteps, result, error, startResearch, loadReport, reset } = useResearch();
   const { setResearchState } = useCopilot();
+
+  // Load report from URL if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('reportId');
+      if (id) {
+        loadReport(id);
+        // Clear the query string without reloading the page
+        router.replace('/dashboard', { scroll: false });
+      }
+    }
+  }, [loadReport, router]);
 
   // Sync research state to copilot context
   useEffect(() => {

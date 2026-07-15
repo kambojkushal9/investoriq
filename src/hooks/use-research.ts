@@ -11,6 +11,7 @@ interface UseResearchReturn {
   reportId: string | null;
   error: string | null;
   startResearch: (company: string) => void;
+  loadReport: (id: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -120,6 +121,35 @@ export function useResearch(): UseResearchReturn {
     }
   }, [reset]);
 
+  const loadReport = useCallback(async (id: string) => {
+    reset();
+    setIsLoading(true);
+    setCurrentStep('loading_history');
+    
+    try {
+      const res = await fetch(`/api/history?id=${id}`);
+      if (!res.ok) throw new Error('Failed to load report');
+      const data = await res.json();
+      
+      setResult(data as ResearchState);
+      setReportId(id);
+      setCurrentStep('complete');
+      
+      const steps = [];
+      if (data.companyResearch) steps.push('company_research');
+      if (data.financialAnalysis) steps.push('financial_analysis');
+      if (data.newsIntelligence) steps.push('news_intelligence');
+      if (data.marketSentiment) steps.push('market_sentiment');
+      if (data.riskAssessment) steps.push('risk_assessment');
+      if (data.recommendation) steps.push('recommendation');
+      setCompletedSteps(steps);
+    } catch (err) {
+      setError((err as Error).message || 'Failed to load report');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [reset]);
+
   return {
     isLoading,
     currentStep,
@@ -128,6 +158,7 @@ export function useResearch(): UseResearchReturn {
     reportId,
     error,
     startResearch,
+    loadReport,
     reset,
   };
 }
