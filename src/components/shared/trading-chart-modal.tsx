@@ -51,7 +51,29 @@ export function TradingChartModal({ isOpen, onClose, symbol }: TradingChartModal
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       })
-      .then(setData)
+      .then(newData => {
+        const change = newData.currentPrice - newData.previousClose;
+        const changePercent = newData.previousClose > 0 ? (change / newData.previousClose) : 0;
+        
+        setData({
+          symbol: newData.ticker,
+          name: newData.companyName || newData.ticker,
+          currentPrice: newData.currentPrice,
+          change,
+          changePercent,
+          volume: newData.summary?.averageVolume || 0,
+          high52: newData.summary?.highestPrice || 0,
+          low52: newData.summary?.lowestPrice || 0,
+          chartData: newData.data ? newData.data.map((d: any) => ({
+            date: new Date(d.timestamp).toISOString(),
+            price: d.close,
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            volume: d.volume
+          })) : []
+        });
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [isOpen, symbol]);
@@ -61,7 +83,7 @@ export function TradingChartModal({ isOpen, onClose, symbol }: TradingChartModal
   const colorGlow = isUp ? 'rgba(52, 211, 153, 0.2)' : 'rgba(244, 63, 94, 0.2)';
 
   // Prepare candlestick data
-  const candleData = data?.chartData.map(d => ({
+  const candleData = data?.chartData?.map(d => ({
     ...d,
     body: [d.open ?? d.price, d.price], // price is close
     wick: [d.low ?? d.price, d.high ?? d.price],
